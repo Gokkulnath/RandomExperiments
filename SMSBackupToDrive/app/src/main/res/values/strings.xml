@@ -28,4 +28,8 @@
     <string name="error_no_sms_on_device">No SMS messages found on this device for backup.</string>
     <string name="warning_receive_sms_permission_missing">Warning: RECEIVE_SMS permission is missing. Automatic backups are disabled.</string>
 
+    <!-- Strings added for enhanced feedback in MainActivity -->
+    <string name="permission_read_sms_denied_message">READ_SMS permission is required to back up messages. The feature is unavailable without it.</string>
+    <string name="permission_read_sms_granted_manual_sync_instruction">READ_SMS permission granted. Click \'Manual Sync\' again to start.</string>
+    <string name="manual_sync_complete_no_new_messages">Manual sync complete. Processed %1$d messages. No new messages were backed up.</string>
 </resources>

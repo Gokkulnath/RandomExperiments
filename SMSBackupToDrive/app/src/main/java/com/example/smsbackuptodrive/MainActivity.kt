@@ -25,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var signOutButton: Button
     private lateinit var statusTextView: TextView
     private lateinit var userInfoTextView: TextView
-    private lateinit var readSmsButton: Button
     private lateinit var manualSyncButton: Button // For Manual Sync
     private lateinit var syncProgressBar: ProgressBar
     private lateinit var syncStatusTextView: TextView
@@ -47,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         signOutButton = findViewById(R.id.sign_out_button)
         statusTextView = findViewById(R.id.status_textview)
         userInfoTextView = findViewById(R.id.user_info_textview)
-        readSmsButton = findViewById(R.id.read_sms_button)
         manualSyncButton = findViewById(R.id.manual_sync_button)
         syncProgressBar = findViewById(R.id.sync_progress_bar)
         syncStatusTextView = findViewById(R.id.sync_status_textview)
@@ -81,44 +79,6 @@ class MainActivity : AppCompatActivity() {
 
         signOutButton.setOnClickListener {
             signOut()
-        }
-
-        readSmsButton.setOnClickListener {
-            // TODO: Implement runtime permission check for READ_SMS before calling readAllSms
-            // For now, directly calling, assuming permission is granted or will be handled.
-            Log.d(TAG, "Read SMS button clicked. Requesting READ_SMS permission conceptually.")
-            // Ideally, you'd check for permission here:
-            // if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
-            //     val smsList = readAllSms()
-            //     Log.d(TAG, "SMS Read Count: ${smsList.size}")
-            //     smsList.take(5).forEach { // Log first 5 messages for brevity
-            //         Log.d(TAG, "SMS: Sender: ${it.sender}, Body: ${it.body.take(50)}, Date: ${it.timestamp}")
-            //     }
-            // } else {
-            //     Log.w(TAG, "READ_SMS permission not granted. Cannot read SMS.")
-            //     // ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_SMS), YOUR_REQUEST_CODE_READ_SMS)
-            // }
-            // For this subtask, we'll just log the attempt and the fact that permission handling is needed.
-            // Calling the function directly to ensure it compiles, but it won't work without permissions on a real device.
-            // This button's primary role is now superseded by manual sync, consider removing or repurposing.
-            // For now, keeping its logic but commenting out direct call to avoid confusion with manual sync.
-            // val smsList = readAllSms()
-            // Log.d(TAG, "SMS Read attempt. Count (if permission granted): ${smsList.size}")
-            // if (smsList.isNotEmpty()) {
-            //     smsList.take(5).forEach { // Log first 5 messages for brevity
-            //          Log.d(TAG, "SMS: Sender: ${it.sender}, Body: ${it.body.take(50)}, Date: ${it.timestamp}")
-            //     }
-            // } else {
-            //     Log.d(TAG, "No SMS messages found or permission READ_SMS not granted.")
-            // }
-            Log.d(TAG, "'Read All SMS (Dev)' button clicked. Functionality is developer-oriented or being phased out by Manual Sync.")
-            // Optionally, trigger a permission check here too if this button is kept for testing readAllSms independently
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
-                val smsListDev = readAllSms()
-                Log.d(TAG, "DEV READ: SMS Read Count: ${smsListDev.size}")
-            } else {
-                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_SMS), REQUEST_CODE_READ_SMS)
-            }
         }
 
         manualSyncButton.setOnClickListener {
@@ -174,14 +134,12 @@ class MainActivity : AppCompatActivity() {
             signInButton.visibility = View.GONE
             signOutButton.visibility = View.VISIBLE
             manualSyncButton.isEnabled = true
-            readSmsButton.isEnabled = true // Dev button
         } else {
             statusTextView.text = getString(R.string.not_signed_in)
             userInfoTextView.text = "" // Clear user details
             signInButton.visibility = View.VISIBLE
             signOutButton.visibility = View.GONE
             manualSyncButton.isEnabled = false
-            readSmsButton.isEnabled = false // Dev button
         }
     }
 
@@ -237,12 +195,12 @@ class MainActivity : AppCompatActivity() {
             REQUEST_CODE_READ_SMS -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     Log.d(TAG, "READ_SMS permission granted by user after request.")
-                    syncStatusTextView.text = "READ_SMS permission granted. Click 'Manual Sync' again."
+                    syncStatusTextView.text = getString(R.string.permission_read_sms_granted_manual_sync_instruction)
                     // Optionally, trigger handleManualSync() here directly, but be cautious of loops if rationale is shown.
-                    // handleManualSync() // Re-check permission if calling directly
+                    // For now, instructing user to click again is safer.
                 } else {
                     Log.w(TAG, "READ_SMS permission denied by user after request.")
-                    syncStatusTextView.text = getString(R.string.permission_read_sms_denied)
+                    syncStatusTextView.text = getString(R.string.permission_read_sms_denied_message)
                     // Explain that the feature is unavailable.
                 }
                 return
@@ -281,6 +239,7 @@ class MainActivity : AppCompatActivity() {
         if (googleSignInAccount == null) {
             syncStatusTextView.text = getString(R.string.please_sign_in_sync)
             Log.w(TAG, "Manual Sync: User not signed in.")
+            syncProgressBar.visibility = View.GONE // Ensure progress bar is hidden
             return
         }
 
@@ -304,7 +263,11 @@ class MainActivity : AppCompatActivity() {
                 if (smsList.isEmpty()) {
                     Log.d(TAG, "Manual Sync: No SMS messages found on device.")
                     withContext(Dispatchers.Main) {
-                        syncStatusTextView.text = getString(R.string.error_no_sms_on_device) // Use specific string
+                        syncStatusTextView.text = getString(R.string.error_no_sms_on_device)
+                        // Ensure progress bar is hidden as this is a completion state for this path.
+                        // It will be hidden in the final `withContext(Dispatchers.Main)` block,
+                        // but explicitly setting it here if other logic paths were added before that.
+                        // syncProgressBar.visibility = View.GONE // Already handled by the final block
                     }
                 } else {
                     Log.d(TAG, "Manual Sync: Found ${smsList.size} SMS. Proceeding with sheet operations.")
@@ -355,11 +318,26 @@ class MainActivity : AppCompatActivity() {
                 syncProgressBar.visibility = View.GONE
                 if (errorMessage != null) {
                     syncStatusTextView.text = errorMessage // Display the user-friendly error
-                } else {
+                } else if (messagesProcessedCount == 0 && newMessagesBackedUpCount == 0 && smsList.isEmpty()) {
+                    // This condition is when readAllSms() was empty, already handled above by setting
+                    // R.string.error_no_sms_on_device. If that text needs to persist, do nothing here.
+                    // Otherwise, one might set a generic "Sync checked, no new messages" if smsList wasn't empty but no new ones were backed up.
+                    // For now, the specific "no sms on device" message takes precedence if smsList was empty.
+                    // If smsList was not empty, but no new messages were backed up (all duplicates or errors handled by errorMessage)
+                    // then the generic complete message is fine.
+                    if (!smsList.isEmpty()) { // Only override "no_sms_on_device" if there were SMS to process
+                        syncStatusTextView.text = getString(R.string.manual_sync_complete_no_new_messages, messagesProcessedCount)
+                    }
+                }
+                else {
                     syncStatusTextView.text = getString(R.string.manual_sync_complete, newMessagesBackedUpCount, messagesProcessedCount)
+                    // Save timestamp only if actual processing or backup occurred.
+                    // The condition `smsList.isEmpty()` is implicitly handled as messagesProcessedCount would be 0.
+                    // We save if any message was processed OR any new message was backed up.
+                    // This means even if all messages were duplicates, as long as we processed some, we record the sync time.
                     if (messagesProcessedCount > 0 || newMessagesBackedUpCount > 0) {
-                        saveLastSyncTimestamp()
-                        updateLastSyncStatus(getString(R.string.last_sync_status, formatTimestamp(System.currentTimeMillis())))
+                         saveLastSyncTimestamp()
+                         updateLastSyncStatus(getString(R.string.last_sync_status, formatTimestamp(System.currentTimeMillis())))
                     }
                 }
                 Log.i(TAG, "Manual Sync: Process finished. Result: ${syncStatusTextView.text}")

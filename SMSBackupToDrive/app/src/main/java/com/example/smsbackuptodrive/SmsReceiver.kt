@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 
 class SmsReceiver : BroadcastReceiver() {
 
@@ -25,14 +28,21 @@ class SmsReceiver : BroadcastReceiver() {
                 Log.d(TAG, "Body: $messageBody")
                 Log.d(TAG, "Timestamp: $timestamp")
 
-                // Trigger the SmsSyncService to handle processing and Google Drive upload.
-                val serviceIntent = Intent(context, SmsSyncService::class.java).apply {
-                    putExtra(SmsSyncService.EXTRA_SENDER, sender)
-                    putExtra(SmsSyncService.EXTRA_BODY, messageBody)
-                    putExtra(SmsSyncService.EXTRA_TIMESTAMP, timestamp)
-                }
-                SmsSyncService.enqueueWork(context, serviceIntent)
-                Log.d(TAG, "Enqueued SMS to SmsSyncService for processing.")
+                // Prepare data for the Worker
+                val workData = Data.Builder()
+                    .putString(SmsSyncWorker.INPUT_DATA_SENDER, sender)
+                    .putString(SmsSyncWorker.INPUT_DATA_BODY, messageBody)
+                    .putLong(SmsSyncWorker.INPUT_DATA_TIMESTAMP, timestamp)
+                    .build()
+
+                // Create a WorkRequest for SmsSyncWorker
+                val smsSyncWorkRequest = OneTimeWorkRequestBuilder<SmsSyncWorker>()
+                    .setInputData(workData)
+                    .build()
+
+                // Enqueue the work
+                WorkManager.getInstance(context).enqueue(smsSyncWorkRequest)
+                Log.d(TAG, "Enqueued SMS to SmsSyncWorker for processing.")
             }
         }
     }
