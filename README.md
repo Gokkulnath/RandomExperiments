@@ -47,6 +47,9 @@ A helper script is provided to automate the building of the APK and committing i
     - Commit the APK with a message like "feat: Build and add release APK vX.Y (YYYY-MM-DD HH:MM UTC)".
     - It will remind you to `git push` the changes if desired.
 
+### Automated Builds via GitHub Actions
+This project uses GitHub Actions to automatically build the release APK whenever changes are pushed to the `main` branch. The generated APK is available as a downloadable artifact from the workflow run in the 'Actions' tab of the GitHub repository.
+
 ## Development Notes
 - The application uses Google Sign-In for authentication and requires appropriate OAuth 2.0 credentials (client ID) to be configured in `strings.xml` (`server_client_id`) for the Google Sign-In and Google Sheets/Drive API access to work.
 - SMS messages are stored in a Google Sheet named "SMS Backups" in the user's Google Drive.
