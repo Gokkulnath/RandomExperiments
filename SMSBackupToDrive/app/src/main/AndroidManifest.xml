@@ -33,10 +33,6 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name=".SmsSyncService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
     </application>
 
 </manifest>
