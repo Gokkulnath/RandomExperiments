@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">SMSBackupToDrive</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="signed_in_as">Signed in as: %s</string>
+    <string name="not_signed_in">Not signed in</string>
+    <string name="server_client_id">YOUR_SERVER_CLIENT_ID.apps.googleusercontent.com</string>
+
+    <string name="manual_sync_starting">Starting manual sync...</string>
+    <string name="manual_sync_complete">Manual sync complete. Backed up %1$d new messages. Processed %2$d total messages.</string>
+    <string name="manual_sync_error">Error during manual sync: %s</string>
+    <string name="please_sign_in_sync">Please sign in first to backup SMS.</string>
+    <string name="processed_messages_status">Processed %1$d of %2$d messages...</string>
+    <string name="no_sms_found">No SMS messages found on device.</string>
+    <string name="sync_failed_check_logs">Sync failed. Check logs for details.</string>
+    <string name="permission_read_sms_rationale">Read SMS permission is needed to backup your messages.</string>
+    <string name="permission_read_sms_denied">Read SMS permission denied. Cannot backup messages.</string>
+    <string name="manual_sync_button_text">Manual Sync SMS</string>
+    <string name="last_sync_status">Last sync: %s</string>
+    <string name="last_sync_never">Never</string>
+    <string name="automatic_sync_active">Automatic sync active.</string> <!-- Placeholder for future use -->
+    <string name="permissions_needed_critical">Critical permissions (SMS Receive) are missing. Automatic backup may not function.</string>
+
+    <string name="error_no_network">No internet connection. Please check your connection and try again.</string>
+    <string name="error_authentication_failed">Authentication failed. Please sign out and sign in again.</string>
+    <string name="error_sheet_permission">Error accessing Google Sheet. Please ensure app has permissions or sheet is not corrupted.</string>
+    <string name="error_api_quota_exceeded">API usage limit reached for Google services. Please try again later.</string>
+    <string name="error_sync_failed_general">Sync failed. An unexpected error occurred.</string>
+    <string name="error_no_sms_on_device">No SMS messages found on this device for backup.</string>
+    <string name="warning_receive_sms_permission_missing">Warning: RECEIVE_SMS permission is missing. Automatic backups are disabled.</string>
+
+</resources>
