@@ -1,44 +1,32 @@
-name: Android CI Build APK
+name: Android CI
 
 on:
   push:
-    branches:
-      - main # Or 'master' if that's your primary branch
+    branches: [ main ]
 
 jobs:
   build:
-    name: Build Release APK
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin' # Popular distribution
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: gradle
 
-      - name: Setup Gradle and cache
-        uses: gradle/actions/setup-gradle@v3 # Combined setup and caching
-        with:
-          # gradle-version: wrapper # Use the wrapper defined in the project
-          # cache-read-only: ${{ github.ref != 'refs/heads/main' }} # Example: only write to cache on main branch pushes
-          # Arguments for setup-gradle can be further customized if needed
-          # For example, to specify build-root-directory if your Gradle project is not at the root:
-          build-root-directory: SMSBackupToDrive
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
 
-      - name: Grant execute permission to gradlew
-        run: chmod +x SMSBackupToDrive/gradlew
-        # Working directory is the root of the repo by default
+    - name: Build with Gradle
+      run: ./gradlew assembleRelease
 
-      - name: Build with Gradle (Package Release APK)
-        # Use packageReleaseApk to get the versioned APK in the apks/ directory
-        run: ./SMSBackupToDrive/gradlew -p SMSBackupToDrive :app:packageReleaseApk
-
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: sms-backup-apk # Name of the artifact bundle
-          path: apks/sms_backup_to_drive_v*.apk # Path to the versioned APK in the apks directory
-          # retention-days: 5 # Optional: how long to keep the artifact
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release
+        path: app/build/outputs/apk/release/app-release-unsigned.apk
