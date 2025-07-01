@@ -19,11 +19,16 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x ./gradlew
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3 # Replaces chmod and direct gradlew call
+      with:
+        # gradle-version: wrapper # This would ideally use the wrapper, but it's missing.
+                                 # The action can also use a specific Gradle version or discover it.
+        # cache-read-only: false # Adjust caching as needed
+        # build-root-directory: '.' # Default is repository root
 
     - name: Build with Gradle
-      run: ./gradlew assembleRelease
+      run: gradle assembleRelease # Use 'gradle' directly after setup-gradle
 
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
